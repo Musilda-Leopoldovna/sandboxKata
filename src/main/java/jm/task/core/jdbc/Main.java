@@ -19,9 +19,12 @@ public class Main {
         //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
         userService.saveUser("Sasha", "Utochkin", (byte) 7);
         //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
+        userService.saveUser("Kolya", "Ivanov", (byte) 5);
+        //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
 
         List<User> allUsers = userService.getAllUsers();
         allUsers.forEach(u -> System.out.println(u.toString()));
+
         userService.removeUserById(3L);
         userService.cleanUsersTable();
         userService.dropUsersTable();

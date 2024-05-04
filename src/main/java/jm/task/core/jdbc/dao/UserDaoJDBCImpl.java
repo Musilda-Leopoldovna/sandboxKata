@@ -14,7 +14,8 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void createUsersTable() {
         String userData = "CREATE TABLE IF NOT EXISTS user " + "(ID BIGINT(100) NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
-                "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL)";
+                "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL, " +
+                "UNIQUE INDEX ID (name, lastname, age))";
         try(Connection newConnection = Util.getDBconnection(); Statement st = newConnection.createStatement()) {
             st.executeUpdate(userData);
         } catch (ClassNotFoundException | SQLException | IOException e) {
@@ -32,15 +33,12 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        String userData = "INSERT INTO user (name, lastname, age) VALUES (?, ?, ?)";
-        try(Connection newConnection = Util.getDBconnection(); PreparedStatement prSt = newConnection.prepareStatement(userData)) {
+        String userData = "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?) ";
+        try(Connection newConnection = Util.getDBconnection(); PreparedStatement prSt = newConnection.prepareStatement(userData, Statement.RETURN_GENERATED_KEYS)) {
             prSt.setString(1, name);
             prSt.setString(2, lastName);
             prSt.setByte(3, age);
-//            User user = this.getAllUsers().get(0);
-//            if (!name.equals(user.getName()) && !lastName.equals(user.getLastName()) && age != user.getAge()) {
-//                prSt.executeUpdate();
-//            }
+            prSt.executeUpdate(); // ""
         } catch (SQLException | ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
