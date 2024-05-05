@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.*;
 
 public class UserDaoJDBCImpl implements UserDao {
+    private static final Logger LOGGER = Logger.getLogger(UserDaoJDBCImpl.class.getName());
     public UserDaoJDBCImpl() {
     }
 
@@ -34,11 +36,23 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void saveUser(String name, String lastName, byte age) {
         String userData = "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?) ";
+        String lastUser = "SELECT * FROM user WHERE ID = (SELECT MAX(ID) FROM user)";
+
         try(Connection newConnection = Util.getDBconnection(); PreparedStatement prSt = newConnection.prepareStatement(userData, Statement.RETURN_GENERATED_KEYS)) {
             prSt.setString(1, name);
             prSt.setString(2, lastName);
             prSt.setByte(3, age);
-            prSt.executeUpdate(); // ""
+            prSt.executeUpdate();
+
+            Statement st = newConnection.createStatement();
+            ResultSet rs = st.executeQuery(lastUser);
+            rs.next();
+                if (name.equals(rs.getString("name"))
+                        && lastName.equals(rs.getString("lastname"))
+                        && age == rs.getByte("age")
+                ) {
+                    LOGGER.log(Level.INFO, "User name '" + name + " " + lastName + "' added in DB.");
+                }
         } catch (SQLException | ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }

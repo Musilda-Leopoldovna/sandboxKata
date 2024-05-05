@@ -12,15 +12,10 @@ public class Main {
 
         userService.createUsersTable();
         userService.saveUser("Kolya", "Ivanov", (byte) 5);
-        //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
         userService.saveUser("Misha", "Ivanov", (byte) 6);
-        //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
         userService.saveUser("Sasha", "Petrov", (byte) 5);
-        //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
         userService.saveUser("Sasha", "Utochkin", (byte) 7);
-        //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
         userService.saveUser("Kolya", "Ivanov", (byte) 5);
-        //System.out.println("User с именем <" + user.getName() + " " + user.getLastName() + "> добавлен в базу данных");
 
         List<User> allUsers = userService.getAllUsers();
         allUsers.forEach(u -> System.out.println(u.toString()));
