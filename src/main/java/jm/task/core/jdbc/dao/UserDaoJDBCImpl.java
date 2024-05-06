@@ -26,26 +26,27 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void dropUsersTable() {
-        String userData = "DROP TABLE IF EXISTS user";
         try(Connection newConnection = Util.getDBconnection(); Statement st = newConnection.createStatement()) {
-            st.executeUpdate(userData);
+            st.executeUpdate("DROP TABLE IF EXISTS user");
         } catch (SQLException | ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        String userData = "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?) ";
-        String lastUser = "SELECT * FROM user WHERE ID = (SELECT MAX(ID) FROM user)";
+        try(Connection newConnection = Util.getDBconnection();
+            PreparedStatement prSt = newConnection.prepareStatement(
+                    "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS))
+        {
 
-        try(Connection newConnection = Util.getDBconnection(); PreparedStatement prSt = newConnection.prepareStatement(userData, Statement.RETURN_GENERATED_KEYS)) {
             prSt.setString(1, name);
             prSt.setString(2, lastName);
             prSt.setByte(3, age);
             prSt.executeUpdate();
 
             Statement st = newConnection.createStatement();
-            ResultSet rs = st.executeQuery(lastUser);
+            ResultSet rs = st.executeQuery("SELECT * FROM user WHERE ID = (SELECT MAX(ID) FROM user)");
             rs.next();
                 if (name.equals(rs.getString("name"))
                         && lastName.equals(rs.getString("lastname"))
@@ -53,14 +54,15 @@ public class UserDaoJDBCImpl implements UserDao {
                 ) {
                     LOGGER.log(Level.INFO, "User name '" + name + " " + lastName + "' added in DB.");
                 }
+
         } catch (SQLException | ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
 
     public void removeUserById(long id) {
-        String userData = "DELETE FROM user WHERE ID = ?";
-        try(Connection newConnection = Util.getDBconnection(); PreparedStatement prpSt = newConnection.prepareStatement(userData)) {
+        try(Connection newConnection = Util.getDBconnection();
+            PreparedStatement prpSt = newConnection.prepareStatement("DELETE FROM user WHERE ID = ?")) {
             prpSt.setLong(1, id);
             prpSt.executeUpdate();
         } catch (SQLException | IOException | ClassNotFoundException e) {
@@ -69,10 +71,9 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public List<User> getAllUsers() {
-        String userData = "SELECT * FROM user";
         List<User> userList = new ArrayList<>();
         try(Connection newConnection = Util.getDBconnection(); Statement st = newConnection.createStatement()){
-            ResultSet rs = st.executeQuery(userData);
+            ResultSet rs = st.executeQuery("SELECT * FROM user");
             while (rs.next()) {
                 User user = new User();
                 user.setId(rs.getLong("ID"));
@@ -88,9 +89,8 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void cleanUsersTable() {
-        String userData = "DELETE FROM user";
         try(Connection newConnection = Util.getDBconnection(); Statement st = newConnection.createStatement()) {
-            st.executeUpdate(userData);
+            st.executeUpdate("DELETE FROM user");
         } catch (SQLException | IOException | ClassNotFoundException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
