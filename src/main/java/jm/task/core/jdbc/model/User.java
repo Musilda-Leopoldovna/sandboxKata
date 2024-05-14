@@ -1,21 +1,31 @@
 package jm.task.core.jdbc.model;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.hibernate.annotations.Type;
 
-@Table
+import javax.persistence.*;
+
+@Entity
+@Table (name = "user",
+        uniqueConstraints =
+        {
+                @UniqueConstraint(columnNames = "name"),
+                @UniqueConstraint(columnNames = "lastname"),
+                @UniqueConstraint(columnNames = "age")
+        })
 public class User {
     @Id
+    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @Column (name = "ID", nullable = false)
     private Long id;
 
-    @Column
+    @Column (name = "name", nullable = false)
     private String name;
 
-    @Column
+    @Column (name = "lastname", nullable = false)
     private String lastName;
 
-    @Column
+    @Column (name = "age", nullable = false)
+    @Type(type = "org.hibernate.type.ByteType")
     private Byte age;
 
     public User() {
