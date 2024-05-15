@@ -17,12 +17,9 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        String userData = "CREATE TABLE IF NOT EXISTS user "
-                + "(ID BIGINT(100) NOT NULL PRIMARY KEY AUTO_INCREMENT, "
-                + "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age TINYINT(3) NOT NULL)";
         try (Session session = util.getHibernateConnect().openSession()){
             Transaction transaction = session.beginTransaction();
-            session.createSQLQuery(userData).addEntity(User.class).executeUpdate();
+            session.createNativeQuery("CREATE TABLE IF NOT EXISTS user");
             transaction.commit();
         } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
@@ -34,17 +31,15 @@ public class UserDaoHibernateImpl implements UserDao {
         String sql = "DROP TABLE IF EXISTS user";
         try (Session session = util.getHibernateConnect().openSession()){
             Transaction transaction = session.beginTransaction();
-            session.createSQLQuery(sql).addEntity(User.class).executeUpdate();
+            session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
         } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
-
     @Override
     public void saveUser(String name, String lastName, byte age) {
         User user = new User(name, lastName, age);
-//        String sql = "INSERT DISTINCT User";
         try(Session session = util.getHibernateConnect().openSession()) {
             if (session == null)
                 return;

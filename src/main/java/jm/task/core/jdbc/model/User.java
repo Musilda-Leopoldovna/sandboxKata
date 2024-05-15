@@ -5,13 +5,8 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 
 @Entity
-@Table (name = "user",
-        uniqueConstraints =
-        {
-                @UniqueConstraint(columnNames = "name"),
-                @UniqueConstraint(columnNames = "lastname"),
-                @UniqueConstraint(columnNames = "age")
-        })
+@Table (name = "user")
+//        uniqueConstraints = @UniqueConstraint(columnNames = {"name", "lastname", "age"}))
 public class User {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -25,7 +20,6 @@ public class User {
     private String lastName;
 
     @Column (name = "age", nullable = false)
-    @Type(type = "org.hibernate.type.ByteType")
     private Byte age;
 
     public User() {
