@@ -49,6 +49,8 @@ public class UserDaoHibernateImpl implements UserDao {
             transaction.commit();
         } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
+        } catch (JDBCException e) {
+            e.fillInStackTrace();
         }
     }
 

@@ -1,12 +1,10 @@
 package jm.task.core.jdbc.model;
 
-import org.hibernate.annotations.Type;
-
 import javax.persistence.*;
 
 @Entity
-@Table (name = "user")
-//        uniqueConstraints = @UniqueConstraint(columnNames = {"name", "lastname", "age"}))
+@Table (name = "user",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"name", "lastname", "age"}))
 public class User {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
