@@ -45,16 +45,7 @@ public class UserDaoJDBCImpl implements UserDao {
             prSt.setString(2, lastName);
             prSt.setByte(3, age);
             prSt.executeUpdate();
-
-            Statement st = newConnection.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM user WHERE ID = (SELECT MAX(ID) FROM user)");
-            rs.next();
-                if (name.equals(rs.getString("name"))
-                        && lastName.equals(rs.getString("lastname"))
-                        && age == rs.getByte("age")
-                ) {
-                    LOGGER.log(Level.INFO, "User name '" + name + " " + lastName + "' added in DB.");
-                }
+            LOGGER.log(Level.INFO, "User name '" + name + " " + lastName + "' added in DB.");
 
         } catch (SQLException | ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());

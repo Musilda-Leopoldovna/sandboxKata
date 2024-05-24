@@ -54,6 +54,7 @@ public class UserDaoHibernateImpl implements UserDao {
             transaction.commit();
         } catch (JDBCException e) {
             e.fillInStackTrace();
+            System.out.println("The DB has this User already");
         }
     }
 
