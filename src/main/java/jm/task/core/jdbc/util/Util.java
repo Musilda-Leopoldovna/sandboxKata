@@ -16,7 +16,8 @@ public class Util {
     public Util(){}
     public SessionFactory getHibernateConnect() throws IOException, ClassNotFoundException {
         Properties connect = new Properties();
-        connect.load(Files.newInputStream(Paths.get("./db.properties").normalize()));
+        connect.load(Files.newInputStream(
+                Paths.get("./db.properties").normalize()));
         return new Configuration()
                 .setProperties(connect)
                 .addAnnotatedClass(User.class)
@@ -25,7 +26,8 @@ public class Util {
 
     public Connection getDBconnection () throws ClassNotFoundException, SQLException, IOException {
         Properties dataConnect = new Properties();
-        dataConnect.load(Files.newInputStream(Paths.get("./db.properties").normalize()));
+        dataConnect.load(Files.newInputStream(
+                Paths.get("./db.properties").normalize()));
         Class.forName(dataConnect.getProperty("dbDriver"));
         return DriverManager.getConnection(
                 dataConnect.getProperty("url"),

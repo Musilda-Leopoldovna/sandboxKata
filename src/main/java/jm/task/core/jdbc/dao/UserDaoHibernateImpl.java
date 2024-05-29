@@ -3,30 +3,39 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import org.hibernate.*;
+import org.hibernate.JDBCException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.*;
+import java.util.logging.Logger;
 
 public class UserDaoHibernateImpl implements UserDao {
-    private final SessionFactory sessionFactory = getSessionFactory();
+    private static final SessionFactory sessionFactory = getSessionFactory();
     private static final Logger LOGGER = Logger.getLogger(UserDaoHibernateImpl.class.getName());
+
     public UserDaoHibernateImpl() {
     }
-    private SessionFactory getSessionFactory() {
+
+    private static SessionFactory getSessionFactory() {
         try {
             return new Util().getHibernateConnect();
         } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
+
     @Override
     public void createUsersTable() {
-        String sql = "CREATE TABLE IF NOT EXISTS user " + "(ID BIGINT(100) NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
-                "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL, " +
-                "UNIQUE INDEX ID (name, lastname, age))";
-        try(Session session = sessionFactory.openSession()) {
+        String sql = "CREATE TABLE IF NOT EXISTS user "
+                + "(ID BIGINT(100) NOT NULL PRIMARY KEY AUTO_INCREMENT, "
+                + "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL, "
+                + "UNIQUE INDEX ID (name, lastname, age))";
+
+        try(Session session = sessionFactory.openSession())
+        {
             Transaction transaction = session.beginTransaction();
             session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
@@ -36,32 +45,39 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS user";
-        try(Session session = sessionFactory.openSession()) {
+
+        try(Session session = sessionFactory.openSession())
+        {
             Transaction transaction = session.beginTransaction();
             session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
         }
     }
+
     @Override
     public void saveUser(String name, String lastName, byte age) {
         User user = new User(name, lastName, age);
-        try(Session session = sessionFactory.openSession()) {
+        String addedUser = String.format("User name '%s %s' added in DB.", name, lastName);
+
+        try(Session session = sessionFactory.openSession())
+        {
             if (session == null)
                 return;
             Transaction transaction = session.beginTransaction();
             session.save(user);
-            LOGGER.log(Level.INFO, "User name '" + name + " " + lastName + "' added in DB.");
+            LOGGER.info(addedUser);
             transaction.commit();
         } catch (JDBCException e) {
-            e.fillInStackTrace();
-            System.out.println("The DB has this User already");
+            System.err.println("The DB has this user already");
         }
     }
 
     @Override
     public void removeUserById(long id) {
         String hql = "DELETE User where ID = :param";
-        try(Session session = sessionFactory.openSession()) {
+
+        try(Session session = sessionFactory.openSession())
+        {
             Transaction transaction = session.beginTransaction();
             session.createQuery(hql).setParameter("param", id).executeUpdate();
             transaction.commit();
@@ -70,16 +86,22 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        try(Session session = sessionFactory.openSession()){
-            return session.createQuery("FROM User", User.class).getResultList();
+        String hql = "FROM User";
+
+        try(Session session = sessionFactory.openSession())
+        {
+            return session.createQuery(hql, User.class).getResultList();
         }
     }
 
     @Override
     public void cleanUsersTable() {
-        try(Session session = sessionFactory.openSession()) {
+        String hql = "DELETE FROM User";
+
+        try(Session session = sessionFactory.openSession())
+        {
             Transaction transaction = session.beginTransaction();
-            session.createQuery("DELETE FROM User").executeUpdate();
+            session.createQuery(hql).executeUpdate();
             transaction.commit();
         }
     }
