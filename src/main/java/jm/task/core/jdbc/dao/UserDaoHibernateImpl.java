@@ -13,18 +13,22 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class UserDaoHibernateImpl implements UserDao {
-    private static final SessionFactory sessionFactory = getSessionFactory();
+    private static final SessionFactory SESSION_FACTORY;
     private static final Logger LOGGER = Logger.getLogger(UserDaoHibernateImpl.class.getName());
 
     public UserDaoHibernateImpl() {
     }
 
-    private static SessionFactory getSessionFactory() {
+    static {
         try {
-            return new Util().getHibernateConnect();
+            SESSION_FACTORY = new Util().getHibernateConnect();
         } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
+    }
+
+    private static SessionFactory getSessionFactory() {
+        return SESSION_FACTORY;
     }
 
     @Override
@@ -34,8 +38,7 @@ public class UserDaoHibernateImpl implements UserDao {
                 + "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL, "
                 + "UNIQUE INDEX ID (name, lastname, age))";
 
-        try(Session session = sessionFactory.openSession())
-        {
+        try(Session session = getSessionFactory().openSession()) {
             Transaction transaction = session.beginTransaction();
             session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
@@ -46,8 +49,7 @@ public class UserDaoHibernateImpl implements UserDao {
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS user";
 
-        try(Session session = sessionFactory.openSession())
-        {
+        try(Session session = getSessionFactory().openSession()) {
             Transaction transaction = session.beginTransaction();
             session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
@@ -59,8 +61,7 @@ public class UserDaoHibernateImpl implements UserDao {
         User user = new User(name, lastName, age);
         String addedUser = String.format("User name '%s %s' added in DB.", name, lastName);
 
-        try(Session session = sessionFactory.openSession())
-        {
+        try(Session session = getSessionFactory().openSession()) {
             if (session == null)
                 return;
             Transaction transaction = session.beginTransaction();
@@ -76,8 +77,7 @@ public class UserDaoHibernateImpl implements UserDao {
     public void removeUserById(long id) {
         String hql = "DELETE User where ID = :param";
 
-        try(Session session = sessionFactory.openSession())
-        {
+        try(Session session = getSessionFactory().openSession()) {
             Transaction transaction = session.beginTransaction();
             session.createQuery(hql).setParameter("param", id).executeUpdate();
             transaction.commit();
@@ -88,8 +88,7 @@ public class UserDaoHibernateImpl implements UserDao {
     public List<User> getAllUsers() {
         String hql = "FROM User";
 
-        try(Session session = sessionFactory.openSession())
-        {
+        try(Session session = getSessionFactory().openSession()) {
             return session.createQuery(hql, User.class).getResultList();
         }
     }
@@ -98,8 +97,7 @@ public class UserDaoHibernateImpl implements UserDao {
     public void cleanUsersTable() {
         String hql = "DELETE FROM User";
 
-        try(Session session = sessionFactory.openSession())
-        {
+        try(Session session = getSessionFactory().openSession()) {
             Transaction transaction = session.beginTransaction();
             session.createQuery(hql).executeUpdate();
             transaction.commit();

@@ -15,10 +15,22 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class UserDaoJDBCImpl implements UserDao {
-    private final Util util = new Util();
+    private static final Connection CONNECTION;
     private static final Logger LOGGER = Logger.getLogger(UserDaoJDBCImpl.class.getName());
 
     public UserDaoJDBCImpl() {
+    }
+
+    static {
+        try {
+            CONNECTION = new Util().getDBconnection();
+        } catch (ClassNotFoundException | IOException | SQLException e) {
+            throw new RuntimeException(e.fillInStackTrace());
+        }
+    }
+
+    private Connection getConnection() {
+        return CONNECTION;
     }
 
     @Override
@@ -26,12 +38,9 @@ public class UserDaoJDBCImpl implements UserDao {
         String userData = "CREATE TABLE IF NOT EXISTS user " + "(ID BIGINT(100) NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
                 "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL, " +
                 "UNIQUE INDEX ID (name, lastname, age))";
-        try(Connection newConnection = util.getDBconnection();
-            Statement st = newConnection.createStatement())
-        {
+        try(Statement st = getConnection().createStatement()) {
             st.execute(userData);
-
-        } catch (ClassNotFoundException | SQLException | IOException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -39,12 +48,9 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS user";
-        try(Connection newConnection = util.getDBconnection();
-            Statement st = newConnection.createStatement())
-        {
+        try(Statement st = getConnection().createStatement()) {
             st.execute(sql);
-
-        } catch (SQLException | ClassNotFoundException | IOException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -53,8 +59,7 @@ public class UserDaoJDBCImpl implements UserDao {
     public void saveUser(String name, String lastName, byte age) {
         String sql = "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?)";
         String addedUser = String.format("User name '%s %s' added in DB.", name, lastName);
-        try(Connection newConnection = util.getDBconnection();
-            PreparedStatement prSt = newConnection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
+        try(PreparedStatement prSt = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
         {
             prSt.setString(1, name);
             prSt.setString(2, lastName);
@@ -62,7 +67,7 @@ public class UserDaoJDBCImpl implements UserDao {
             prSt.executeUpdate();
             LOGGER.info(addedUser);
 
-        } catch (SQLException | ClassNotFoundException | IOException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -70,13 +75,10 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void removeUserById(long id) {
         String sql = "DELETE FROM user WHERE ID = ?";
-        try(Connection newConnection = util.getDBconnection();
-            PreparedStatement prpSt = newConnection.prepareStatement(sql))
-        {
+        try(PreparedStatement prpSt = getConnection().prepareStatement(sql)) {
             prpSt.setLong(1, id);
             prpSt.executeUpdate();
-
-        } catch (SQLException | IOException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -85,12 +87,10 @@ public class UserDaoJDBCImpl implements UserDao {
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
         String sql = "SELECT * FROM user";
-        try(Connection newConnection = util.getDBconnection();
-            Statement st = newConnection.createStatement())
-        {
+        try(Statement st = getConnection().createStatement()) {
             ResultSet rs = st.executeQuery(sql);
-            while (rs.next())
-            {
+
+            while (rs.next()) {
                 User user = new User();
                 user.setId(rs.getLong("ID"));
                 user.setName(rs.getString("name"));
@@ -100,7 +100,7 @@ public class UserDaoJDBCImpl implements UserDao {
             }
             return userList;
 
-        } catch (SQLException | IOException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -108,11 +108,9 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void cleanUsersTable() {
         String sql = "DELETE FROM user";
-        try(Connection newConnection = util.getDBconnection();
-            Statement st = newConnection.createStatement())
-        {
+        try(Statement st = getConnection().createStatement()) {
             st.executeUpdate(sql);
-        } catch (SQLException | IOException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
