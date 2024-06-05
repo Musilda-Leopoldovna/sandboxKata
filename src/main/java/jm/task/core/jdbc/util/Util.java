@@ -12,9 +12,32 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class Util {
-    public Util(){}
-    public SessionFactory getHibernateConnect() throws IOException, ClassNotFoundException {
+public final class Util {
+    private static final Util CONNECT = new Util();
+    private static Connection CONNECTION;
+    private static SessionFactory SESSION_FACTORY;
+    private Util() {
+    }
+
+    private static Util getUtil() {
+        return CONNECT;
+    }
+
+    public static Connection getCONNECTION() throws SQLException, IOException, ClassNotFoundException {
+        if (CONNECTION == null) {
+            CONNECTION = getUtil().getJDBCconnection();
+        }
+        return CONNECTION;
+    }
+
+    public static SessionFactory getSessionFactory() throws IOException, ClassNotFoundException {
+        if (SESSION_FACTORY == null) {
+            SESSION_FACTORY = getUtil().getHibernateConnection();
+        }
+        return SESSION_FACTORY;
+    }
+
+    private SessionFactory getHibernateConnection() throws IOException, ClassNotFoundException {
         Properties connect = new Properties();
         connect.load(Files.newInputStream(
                 Paths.get("./db.properties").normalize()));
@@ -24,7 +47,7 @@ public class Util {
                 .buildSessionFactory();
     }
 
-    public Connection getDBconnection () throws ClassNotFoundException, SQLException, IOException {
+    private Connection getJDBCconnection () throws ClassNotFoundException, SQLException, IOException {
         Properties dataConnect = new Properties();
         dataConnect.load(Files.newInputStream(
                 Paths.get("./db.properties").normalize()));

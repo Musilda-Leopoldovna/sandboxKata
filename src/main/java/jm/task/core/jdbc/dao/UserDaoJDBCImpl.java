@@ -3,34 +3,21 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import java.sql.Connection;
+import java.io.IOException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class UserDaoJDBCImpl implements UserDao {
-    private static final Connection CONNECTION;
+
     private static final Logger LOGGER = Logger.getLogger(UserDaoJDBCImpl.class.getName());
 
     public UserDaoJDBCImpl() {
-    }
-
-    static {
-        try {
-            CONNECTION = new Util().getDBconnection();
-        } catch (ClassNotFoundException | IOException | SQLException e) {
-            throw new RuntimeException(e.fillInStackTrace());
-        }
-    }
-
-    private Connection getConnection() {
-        return CONNECTION;
     }
 
     @Override
@@ -38,19 +25,21 @@ public class UserDaoJDBCImpl implements UserDao {
         String userData = "CREATE TABLE IF NOT EXISTS user " + "(ID BIGINT(100) NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
                 "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL, " +
                 "UNIQUE INDEX ID (name, lastname, age))";
-        try(Statement st = getConnection().createStatement()) {
+        try(Statement st = Util.getCONNECTION().createStatement()) {
             st.execute(userData);
         } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
     @Override
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS user";
-        try(Statement st = getConnection().createStatement()) {
+        try(Statement st = Util.getCONNECTION().createStatement()) {
             st.execute(sql);
-        } catch (SQLException e) {
+        } catch (SQLException | IOException | ClassNotFoundException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -59,7 +48,7 @@ public class UserDaoJDBCImpl implements UserDao {
     public void saveUser(String name, String lastName, byte age) {
         String sql = "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?)";
         String addedUser = String.format("User name '%s %s' added in DB.", name, lastName);
-        try(PreparedStatement prSt = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
+        try(PreparedStatement prSt = Util.getCONNECTION().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
         {
             prSt.setString(1, name);
             prSt.setString(2, lastName);
@@ -67,7 +56,7 @@ public class UserDaoJDBCImpl implements UserDao {
             prSt.executeUpdate();
             LOGGER.info(addedUser);
 
-        } catch (SQLException e) {
+        } catch (SQLException | IOException | ClassNotFoundException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -75,10 +64,10 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void removeUserById(long id) {
         String sql = "DELETE FROM user WHERE ID = ?";
-        try(PreparedStatement prpSt = getConnection().prepareStatement(sql)) {
+        try(PreparedStatement prpSt = Util.getCONNECTION().prepareStatement(sql)) {
             prpSt.setLong(1, id);
             prpSt.executeUpdate();
-        } catch (SQLException e) {
+        } catch (SQLException | IOException | ClassNotFoundException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -87,7 +76,7 @@ public class UserDaoJDBCImpl implements UserDao {
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
         String sql = "SELECT * FROM user";
-        try(Statement st = getConnection().createStatement()) {
+        try(Statement st = Util.getCONNECTION().createStatement()) {
             ResultSet rs = st.executeQuery(sql);
 
             while (rs.next()) {
@@ -100,7 +89,7 @@ public class UserDaoJDBCImpl implements UserDao {
             }
             return userList;
 
-        } catch (SQLException e) {
+        } catch (SQLException | IOException | ClassNotFoundException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
@@ -108,9 +97,9 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void cleanUsersTable() {
         String sql = "DELETE FROM user";
-        try(Statement st = getConnection().createStatement()) {
+        try(Statement st = Util.getCONNECTION().createStatement()) {
             st.executeUpdate(sql);
-        } catch (SQLException e) {
+        } catch (SQLException | IOException | ClassNotFoundException e) {
             throw new RuntimeException(e.fillInStackTrace());
         }
     }
