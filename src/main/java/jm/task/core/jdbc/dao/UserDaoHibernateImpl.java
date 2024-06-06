@@ -7,7 +7,6 @@ import org.hibernate.JDBCException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -29,8 +28,6 @@ public class UserDaoHibernateImpl implements UserDao {
             Transaction transaction = session.beginTransaction();
             session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e.fillInStackTrace());
         }
     }
 
@@ -42,8 +39,6 @@ public class UserDaoHibernateImpl implements UserDao {
             Transaction transaction = session.beginTransaction();
             session.createNativeQuery(sql).executeUpdate();
             transaction.commit();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e.fillInStackTrace());
         }
     }
 
@@ -60,9 +55,7 @@ public class UserDaoHibernateImpl implements UserDao {
             LOGGER.info(addedUser);
             transaction.commit();
         } catch (JDBCException e) {
-            System.err.println("The DB has this user already");
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e.fillInStackTrace());
+            LOGGER.warning("The DB has this user already");
         }
     }
 
@@ -74,8 +67,6 @@ public class UserDaoHibernateImpl implements UserDao {
             Transaction transaction = session.beginTransaction();
             session.createQuery(hql).setParameter("param", id).executeUpdate();
             transaction.commit();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e.fillInStackTrace());
         }
     }
 
@@ -85,8 +76,6 @@ public class UserDaoHibernateImpl implements UserDao {
 
         try(Session session = Util.getSessionFactory().openSession()) {
             return session.createQuery(hql, User.class).getResultList();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e.fillInStackTrace());
         }
     }
 
@@ -98,8 +87,6 @@ public class UserDaoHibernateImpl implements UserDao {
             Transaction transaction = session.beginTransaction();
             session.createQuery(hql).executeUpdate();
             transaction.commit();
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e.fillInStackTrace());
         }
     }
 }

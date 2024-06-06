@@ -11,11 +11,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public final class Util {
     private static final Util CONNECT = new Util();
-    private static Connection CONNECTION;
-    private static SessionFactory SESSION_FACTORY;
+    private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
     private Util() {
     }
 
@@ -23,38 +23,50 @@ public final class Util {
         return CONNECT;
     }
 
-    public static Connection getCONNECTION() throws SQLException, IOException, ClassNotFoundException {
-        if (CONNECTION == null) {
-            CONNECTION = getUtil().getJDBCconnection();
-        }
-        return CONNECTION;
+    private static class GetConnection {
+        private static final Connection CONNECTION = getUtil().getJDBCconnection();
+    }
+    public static Connection getCONNECTION() {
+        return GetConnection.CONNECTION;
     }
 
-    public static SessionFactory getSessionFactory() throws IOException, ClassNotFoundException {
-        if (SESSION_FACTORY == null) {
-            SESSION_FACTORY = getUtil().getHibernateConnection();
-        }
-        return SESSION_FACTORY;
+    private static class GetSessionFactory {
+        private static final SessionFactory SESSION_FACTORY = getUtil().getHibernateConnection();
+    }
+    public static SessionFactory getSessionFactory() {
+        return GetSessionFactory.SESSION_FACTORY;
     }
 
-    private SessionFactory getHibernateConnection() throws IOException, ClassNotFoundException {
+    private SessionFactory getHibernateConnection() {
         Properties connect = new Properties();
-        connect.load(Files.newInputStream(
-                Paths.get("./db.properties").normalize()));
+        try {
+            connect.load(Files.newInputStream(
+                    Paths.get("./db.properties").normalize()));
+        } catch (IOException e) {
+            LOGGER.warning("Connection settings are invalid.");
+            throw new RuntimeException(e);
+        }
         return new Configuration()
                 .setProperties(connect)
                 .addAnnotatedClass(User.class)
                 .buildSessionFactory();
     }
 
-    private Connection getJDBCconnection () throws ClassNotFoundException, SQLException, IOException {
-        Properties dataConnect = new Properties();
-        dataConnect.load(Files.newInputStream(
-                Paths.get("./db.properties").normalize()));
-        Class.forName(dataConnect.getProperty("dbDriver"));
-        return DriverManager.getConnection(
-                dataConnect.getProperty("url"),
-                dataConnect.getProperty("dbUsername"),
-                dataConnect.getProperty("dbPassword"));
+    private Connection getJDBCconnection () {
+        Properties newConnect = new Properties();
+        Connection connection;
+        try {
+            newConnect.load(Files.newInputStream(
+                    Paths.get("./db.properties").normalize()));
+            Class.forName(newConnect.getProperty("dbDriver"));
+            connection = DriverManager.getConnection(
+                    newConnect.getProperty("url"),
+                    newConnect.getProperty("dbUsername"),
+                    newConnect.getProperty("dbPassword"));
+        } catch (ClassNotFoundException | SQLException | IOException e) {
+            LOGGER.warning("Connection settings are invalid.");
+            throw new RuntimeException(e);
+        }
+        return connection;
     }
 }
