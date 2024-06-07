@@ -16,6 +16,9 @@ import java.util.logging.Logger;
 public final class Util {
     private static final Util CONNECT = new Util();
     private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
+    private static SessionFactory SESSION_FACTORY = null;
+    private static Connection CONNECTION = null;
+
     private Util() {
     }
 
@@ -23,18 +26,18 @@ public final class Util {
         return CONNECT;
     }
 
-    private static class GetConnection {
-        private static final Connection CONNECTION = getUtil().getJDBCconnection();
-    }
     public static Connection getCONNECTION() {
-        return GetConnection.CONNECTION;
+        if (CONNECTION == null) {
+            CONNECTION = getUtil().getJDBCconnection();
+        }
+        return CONNECTION;
     }
 
-    private static class GetSessionFactory {
-        private static final SessionFactory SESSION_FACTORY = getUtil().getHibernateConnection();
-    }
     public static SessionFactory getSessionFactory() {
-        return GetSessionFactory.SESSION_FACTORY;
+        if (SESSION_FACTORY == null) {
+            SESSION_FACTORY = getUtil().getHibernateConnection();
+        }
+        return SESSION_FACTORY;
     }
 
     private SessionFactory getHibernateConnection() {
