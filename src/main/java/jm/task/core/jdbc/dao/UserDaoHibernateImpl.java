@@ -45,14 +45,12 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public void saveUser(String name, String lastName, byte age) {
         User user = new User(name, lastName, age);
-        String addedUser = String.format("User name '%s %s' added in DB.", name, lastName);
 
         try(Session session = Util.getSessionFactory().openSession()) {
             if (session == null)
                 return;
             Transaction transaction = session.beginTransaction();
             session.save(user);
-            LOGGER.info(addedUser);
             transaction.commit();
         } catch (JDBCException e) {
             LOGGER.warning("The DB has this user already");

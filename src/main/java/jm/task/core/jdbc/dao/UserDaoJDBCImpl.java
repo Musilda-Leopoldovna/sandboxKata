@@ -44,14 +44,12 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void saveUser(String name, String lastName, byte age) {
         String sql = "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?)";
-        String addedUser = String.format("User name '%s %s' added in DB.", name, lastName);
         try(PreparedStatement prSt = Util.getCONNECTION().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
         {
             prSt.setString(1, name);
             prSt.setString(2, lastName);
             prSt.setByte(3, age);
             prSt.executeUpdate();
-            LOGGER.info(addedUser);
 
         } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
