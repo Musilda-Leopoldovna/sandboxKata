@@ -17,20 +17,12 @@ public final class Util {
     private static final Util CONNECT = new Util();
     private static final Logger LOGGER = Logger.getLogger(Util.class.getName());
     private static SessionFactory SESSION_FACTORY = null;
-    private static Connection CONNECTION = null;
 
     private Util() {
     }
 
     private static Util getUtil() {
         return CONNECT;
-    }
-
-    public static Connection getCONNECTION() {
-        if (CONNECTION == null) {
-            CONNECTION = getUtil().getJDBCconnection();
-        }
-        return CONNECTION;
     }
 
     public static SessionFactory getSessionFactory() {
@@ -55,7 +47,7 @@ public final class Util {
                 .buildSessionFactory();
     }
 
-    private Connection getJDBCconnection () {
+    public static Connection getJDBCconnection () {
         Properties newConnect = new Properties();
         Connection connection;
         try {

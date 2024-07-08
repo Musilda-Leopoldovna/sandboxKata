@@ -3,10 +3,7 @@ package kata.pp.jdbc.dao;
 import kata.pp.jdbc.model.User;
 import kata.pp.jdbc.util.Util;
 
-import java.sql.Statement;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.ResultSet;
+import java.sql.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +18,7 @@ public class UserDaoJDBCImpl implements UserDao {
         String userData = "CREATE TABLE IF NOT EXISTS user " + "(ID BIGINT(100) NOT NULL PRIMARY KEY AUTO_INCREMENT, " +
                 "name varchar(20) NOT NULL, lastname VARCHAR(40) NOT NULL, age integer(3) NOT NULL, " +
                 "UNIQUE INDEX ID (name, lastname, age))";
-        try(Statement st = Util.getCONNECTION().createStatement()) {
+        try(Connection connection = Util.getJDBCconnection(); Statement st = connection.createStatement()) {
             st.execute(userData);
         } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
@@ -31,7 +28,7 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS user";
-        try(Statement st = Util.getCONNECTION().createStatement()) {
+        try(Connection connection = Util.getJDBCconnection(); Statement st = connection.createStatement()) {
             st.execute(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
@@ -41,7 +38,7 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void saveUser(String name, String lastName, byte age) {
         String sql = "INSERT IGNORE INTO user (name, lastname, age) VALUES (?, ?, ?)";
-        try(PreparedStatement prSt = Util.getCONNECTION().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
+        try(Connection connection = Util.getJDBCconnection(); PreparedStatement prSt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS))
         {
             prSt.setString(1, name);
             prSt.setString(2, lastName);
@@ -56,7 +53,7 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void removeUserById(long id) {
         String sql = "DELETE FROM user WHERE ID = ?";
-        try(PreparedStatement prpSt = Util.getCONNECTION().prepareStatement(sql)) {
+        try(Connection connection = Util.getJDBCconnection(); PreparedStatement prpSt = connection.prepareStatement(sql)) {
             prpSt.setLong(1, id);
             prpSt.executeUpdate();
         } catch (SQLException e) {
@@ -68,8 +65,9 @@ public class UserDaoJDBCImpl implements UserDao {
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
         String sql = "SELECT * FROM user ORDER BY ID";
-        try(Statement st = Util.getCONNECTION().createStatement()) {
-            ResultSet rs = st.executeQuery(sql);
+        try(Connection con = Util.getJDBCconnection();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery(sql)) {
 
             while (rs.next()) {
                 User user = new User();
@@ -89,7 +87,7 @@ public class UserDaoJDBCImpl implements UserDao {
     @Override
     public void cleanUsersTable() {
         String sql = "DELETE FROM user";
-        try(Statement st = Util.getCONNECTION().createStatement()) {
+        try(Connection connection = Util.getJDBCconnection(); Statement st = connection.createStatement()) {
             st.executeUpdate(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e.fillInStackTrace());
